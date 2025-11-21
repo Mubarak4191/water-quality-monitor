@@ -113,10 +113,10 @@ export default function DashboardClient() {
     if (!settings) return {} as Record<SensorType, Sensor>;
     const { thresholds } = settings.notifications;
     return {
-      pH: { type: 'pH', unit: '', value: 7.5, status: 'safe', history: generateHistoricalData(1, 60, [7.2, 7.8]) },
-      Temperature: { type: 'Temperature', unit: '°C', value: 22.1, status: 'safe', history: generateHistoricalData(1, 60, [21, 23]) },
-      TDS: { type: 'TDS', unit: 'ppm', value: 350, status: 'safe', history: generateHistoricalData(1, 60, [300, 400]) },
-      Turbidity: { type: 'Turbidity', unit: 'NTU', value: 1.2, status: 'safe', history: generateHistoricalData(1, 60, [0.5, 1.5]) },
+      pH: { type: 'pH', unit: '', value: 7.5, status: 'safe', history: generateHistoricalData(1, 60, thresholds.pH) },
+      Temperature: { type: 'Temperature', unit: '°C', value: 22.1, status: 'safe', history: generateHistoricalData(1, 60, thresholds.Temperature) },
+      TDS: { type: 'TDS', unit: 'ppm', value: 350, status: 'safe', history: generateHistoricalData(1, 60, thresholds.TDS) },
+      Turbidity: { type: 'Turbidity', unit: 'NTU', value: 1.2, status: 'safe', history: generateHistoricalData(1, 60, thresholds.Turbidity) },
     };
   }, [settings]);
 
@@ -158,8 +158,7 @@ export default function DashboardClient() {
         if (!prevSensors) return null;
 
         const newSensors = { ...prevSensors };
-        let hasAlert = false;
-
+        
         for (const key in newSensors) {
           const sensorType = key as SensorType;
           const sensor = newSensors[sensorType];
@@ -177,7 +176,6 @@ export default function DashboardClient() {
           const newStatus = getStatus(newValue, range);
 
           if (newStatus !== 'safe' && sensor.status === 'safe') {
-            hasAlert = true;
             handleAlert({ ...sensor, value: newValue, status: newStatus });
           }
           
@@ -282,3 +280,5 @@ export default function DashboardClient() {
     </div>
   );
 }
+
+    

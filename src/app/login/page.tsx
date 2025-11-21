@@ -18,14 +18,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <Card className="mx-auto max-w-sm w-full bg-gray-950/80 backdrop-blur-sm border-gray-800 text-white">
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="mx-auto max-w-sm w-full bg-card">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <Droplets className="h-8 w-8 text-cyan-400" />
+            <Droplets className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-2xl">Login to Your Account</CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription>
             Enter your email below to login
           </CardDescription>
         </CardHeader>
@@ -38,7 +38,6 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
-                className="bg-gray-800 border-gray-700 focus:ring-cyan-500"
               />
             </div>
             <div className="grid gap-2">
@@ -46,7 +45,7 @@ export default function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="#"
-                  className="ml-auto inline-block text-sm underline text-cyan-400 hover:text-cyan-300"
+                  className="ml-auto inline-block text-sm underline text-primary"
                 >
                   Forgot your password?
                 </Link>
@@ -55,19 +54,18 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
-                className="bg-gray-800 border-gray-700 focus:ring-cyan-500"
               />
             </div>
-            <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white">
+            <Button type="submit" className="w-full">
               Login
             </Button>
-            <Button variant="outline" className="w-full border-cyan-500 text-cyan-400 hover:bg-cyan-900/50 hover:text-cyan-300" asChild>
+            <Button variant="outline" className="w-full" asChild>
               <Link href="/dashboard">Continue as Guest</Link>
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline text-cyan-400 hover:text-cyan-300">
+            <Link href="/signup" className="underline text-primary">
               Sign up
             </Link>
           </div>
@@ -76,3 +74,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
