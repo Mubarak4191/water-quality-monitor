@@ -1,35 +1,50 @@
-import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
+'use client';
+
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Droplets } from "lucide-react"
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Droplets } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push('/dashboard');
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="mx-auto max-w-sm w-full">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <Card className="mx-auto max-w-sm w-full bg-gray-950/80 backdrop-blur-sm border-gray-800 text-white">
         <CardHeader className="text-center">
-            <div className="flex justify-center items-center mb-4">
-                <Droplets className="h-8 w-8 text-primary" />
-            </div>
+          <div className="flex justify-center items-center mb-4">
+            <Droplets className="h-8 w-8 text-cyan-400" />
+          </div>
           <CardTitle className="text-2xl">Create an Account</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-400">
             Enter your information to create an account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-2">
-                <Label htmlFor="first-name">Name</Label>
-                <Input id="first-name" placeholder="Alex Doe" required />
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Alex Doe"
+                required
+                className="bg-gray-800 border-gray-700 focus:ring-cyan-500"
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -38,26 +53,30 @@ export default function SignupPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                className="bg-gray-800 border-gray-700 focus:ring-cyan-500"
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" />
+              <Input
+                id="password"
+                type="password"
+                required
+                className="bg-gray-800 border-gray-700 focus:ring-cyan-500"
+              />
             </div>
-            <Button type="submit" className="w-full" asChild>
-                <Link href="/dashboard">
-                    Create an account
-                </Link>
+            <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700 text-white">
+              Create an account
             </Button>
-          </div>
+          </form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/login" className="underline">
+            Already have an account?{' '}
+            <Link href="/login" className="underline text-cyan-400 hover:text-cyan-300">
               Sign in
             </Link>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
