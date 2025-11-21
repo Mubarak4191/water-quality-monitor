@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -8,13 +7,45 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Droplets } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/hooks/use-settings';
+
+const USER_DB_KEY = 'waterQualityUsers';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { updateSettings } = useSettings();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    router.push('/dashboard');
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    const users = JSON.parse(localStorage.getItem(USER_DB_KEY) || '{}');
+    const user = users[email];
+
+    if (user && user.password === password) {
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      // On successful login, update the settings with the user's profile
+      updateSettings({
+        profile: {
+          name: user.name,
+          email: user.email,
+        },
+      });
+      router.push('/dashboard');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Incorrect email or password. Please try again.',
+      });
+    }
   };
 
   return (
@@ -35,6 +66,7 @@ export default function LoginPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="m@example.com"
                 required
@@ -52,6 +84,7 @@ export default function LoginPage() {
               </div>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 required
               />
@@ -74,5 +107,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    

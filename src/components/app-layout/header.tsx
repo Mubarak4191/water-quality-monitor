@@ -14,9 +14,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { useSettings } from '@/hooks/use-settings';
 
 export default function Header() {
   const pathname = usePathname();
+  const { settings } = useSettings();
+
   const getTitle = () => {
     switch (pathname) {
       case '/dashboard':
@@ -28,6 +31,15 @@ export default function Header() {
       default:
         return 'Water Quality Monitor';
     }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
   };
 
   return (
@@ -44,10 +56,16 @@ export default function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://picsum.photos/seed/avatar/40/40" alt="User avatar" />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
+              {settings?.profile ? (
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={settings.profile.avatarUrl ?? `https://picsum.photos/seed/${settings.profile.name}/40/40`} alt={settings.profile.name} />
+                  <AvatarFallback>{getInitials(settings.profile.name)}</AvatarFallback>
+                </Avatar>
+              ) : (
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>??</AvatarFallback>
+                </Avatar>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

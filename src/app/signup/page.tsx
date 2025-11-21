@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -14,12 +13,48 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Droplets } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/hooks/use-settings';
+
+const USER_DB_KEY = 'waterQualityUsers';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { updateSettings } = useSettings();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    // Simulate a user database in localStorage
+    const users = JSON.parse(localStorage.getItem(USER_DB_KEY) || '{}');
+
+    if (users[email]) {
+      toast({
+        variant: 'destructive',
+        title: 'Account Already Exists',
+        description: 'An account with this email already exists. Please log in.',
+      });
+      return;
+    }
+
+    users[email] = { name, email, password };
+    localStorage.setItem(USER_DB_KEY, JSON.stringify(users));
+
+    // Update settings with the new profile
+    updateSettings({
+      profile: { name, email },
+    });
+
+    toast({
+      title: 'Account Created!',
+      description: 'You have been successfully signed up.',
+    });
+
     router.push('/dashboard');
   };
 
@@ -41,6 +76,7 @@ export default function SignupPage() {
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
+                name="name"
                 placeholder="Alex Doe"
                 required
               />
@@ -49,6 +85,7 @@ export default function SignupPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="m@example.com"
                 required
@@ -58,6 +95,7 @@ export default function SignupPage() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 required
               />
@@ -77,5 +115,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-    

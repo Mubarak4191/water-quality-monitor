@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, History, Settings, LogOut, Droplets } from 'lucide-react';
+import { useSettings } from '@/hooks/use-settings';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,6 +25,17 @@ const menuItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const { settings } = useSettings();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
 
   return (
     <Sidebar>
@@ -56,21 +68,32 @@ export default function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4">
         <SidebarGroup>
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage src="https://picsum.photos/seed/avatar/40/40" />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-                <p className="font-semibold text-sm truncate">Alex Doe</p>
-                <p className="text-xs text-muted-foreground truncate">alex.doe@example.com</p>
+          {settings?.profile ? (
+            <div className="flex items-center gap-3">
+              <Avatar>
+                 <AvatarImage src={settings.profile.avatarUrl ?? `https://picsum.photos/seed/${settings.profile.name}/40/40`} />
+                 <AvatarFallback>{getInitials(settings.profile.name)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 overflow-hidden">
+                  <p className="font-semibold text-sm truncate">{settings.profile.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{settings.profile.email}</p>
+              </div>
+              <Button variant="ghost" size="icon" asChild>
+                  <Link href="/login">
+                      <LogOut className="w-4 h-4" />
+                  </Link>
+              </Button>
             </div>
-            <Button variant="ghost" size="icon" asChild>
-                <Link href="/login">
-                    <LogOut className="w-4 h-4" />
-                </Link>
-            </Button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-3">
+                <Avatar>
+                    <AvatarFallback>??</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                    <p className="text-sm font-semibold">Not Logged In</p>
+                </div>
+            </div>
+          )}
         </SidebarGroup>
       </SidebarFooter>
     </Sidebar>

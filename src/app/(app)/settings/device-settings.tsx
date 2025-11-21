@@ -1,21 +1,84 @@
 'use client';
 
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bluetooth, BluetoothConnected, MoreVertical, Trash2 } from 'lucide-react';
+import { Bluetooth, BluetoothConnected, MoreVertical, Trash2, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useToast } from '@/hooks/use-toast';
 
-const devices = [
-    { name: 'Living Room Aquarium', id: 'ESP32-A1:B2:C3:D4', connected: true },
-    { name: 'Kitchen Tap Filter', id: 'ESP32-E5:F6:A7:B8', connected: false },
-]
+// Extend the Device type to include the BluetoothDevice object
+type Device = {
+  name: string | null;
+  id: string;
+  connected: boolean;
+  device: BluetoothDevice | null; // Store the actual device object
+};
+
 
 export default function DeviceSettings() {
+  const { toast } = useToast();
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
+
+  const handleConnectDevice = async () => {
+    if (!navigator.bluetooth) {
+      toast({
+        variant: "destructive",
+        title: "Web Bluetooth API not available",
+        description: "Your browser does not support Web Bluetooth. Please use a compatible browser like Chrome.",
+      });
+      return;
+    }
+
+    setIsScanning(true);
+    try {
+      // Request a device with a specific service if known, otherwise scan for all.
+      // For a water quality monitor, you'd typically have a specific service UUID.
+      const bleDevice = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        // Optional: Filter for specific services
+        // optionalServices: ['<your-esp32-service-uuid>'],
+      });
+
+      toast({
+        title: "Device found!",
+        description: `Found ${bleDevice.name || `Unnamed Device (${bleDevice.id})`}.`,
+      });
+      
+      setDevices(prevDevices => {
+        // Avoid adding duplicate devices
+        if (prevDevices.some(d => d.id === bleDevice.id)) {
+            return prevDevices;
+        }
+        return [...prevDevices, { name: bleDevice.name ?? 'Unnamed Device', id: bleDevice.id, connected: false, device: bleDevice }];
+      });
+
+    } catch (error: any) {
+      if (error.name === 'NotFoundError') {
+        toast({
+            variant: "default",
+            title: "No device selected",
+            description: "The device scanning process was cancelled.",
+        });
+      } else {
+        toast({
+            variant: "destructive",
+            title: "Bluetooth Error",
+            description: `Could not connect to device: ${error.message}`,
+        });
+      }
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+
   return (
     <Card>
       <CardHeader>
@@ -24,14 +87,20 @@ export default function DeviceSettings() {
                 <CardTitle>Device Management</CardTitle>
                 <CardDescription>Pair and manage your water quality sensors.</CardDescription>
             </div>
-            <Button>
-                <Bluetooth className="mr-2 h-4 w-4" />
-                Pair New Device
+            <Button onClick={handleConnectDevice} disabled={isScanning}>
+                {isScanning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bluetooth className="mr-2 h-4 w-4" />}
+                {isScanning ? 'Scanning...' : 'Pair New Device'}
             </Button>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+            {devices.length === 0 && !isScanning && (
+                <div className="text-center text-muted-foreground py-8">
+                    <p>No paired devices found.</p>
+                    <p>Click "Pair New Device" to get started.</p>
+                </div>
+            )}
             {devices.map(device => (
                 <div key={device.id} className="flex items-center justify-between rounded-lg border p-4">
                     <div className="flex items-center gap-4">
