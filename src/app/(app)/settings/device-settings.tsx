@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bluetooth, BluetoothConnected, MoreVertical, Trash2, Loader2 } from 'lucide-react';
@@ -12,69 +12,61 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useToast } from '@/hooks/use-toast';
 
-// Extend the Device type to include the BluetoothDevice object
 type Device = {
-  name: string | null;
-  id: string;
+  name: string;
+  id: string; // This will be the device address from native code
   connected: boolean;
-  device: BluetoothDevice | null; // Store the actual device object
 };
 
+// Extend the Window interface to include our Android bridge and device handler
+declare global {
+  interface Window {
+    Android?: {
+      startScan: () => void;
+    };
+    addBluetoothDevice: (name: string, id: string) => void;
+  }
+}
 
 export default function DeviceSettings() {
   const { toast } = useToast();
   const [devices, setDevices] = useState<Device[]>([]);
   const [isScanning, setIsScanning] = useState(false);
 
+  useEffect(() => {
+    // This function will be called by the native Android code
+    window.addBluetoothDevice = (name: string, id: string) => {
+      setIsScanning(false);
+      setDevices(prevDevices => {
+        if (prevDevices.some(d => d.id === id)) {
+          return prevDevices; // Avoid duplicates
+        }
+        return [...prevDevices, { name, id, connected: false }];
+      });
+    };
+
+    // Cleanup the function when the component unmounts
+    return () => {
+      delete (window as any).addBluetoothDevice;
+    };
+  }, []);
+
   const handleConnectDevice = async () => {
-    if (!navigator.bluetooth) {
+    // Check if the Android bridge is available
+    if (window.Android && typeof window.Android.startScan === 'function') {
+      setIsScanning(true);
+      setDevices([]); // Clear previous results
+      toast({
+        title: "Starting Scan",
+        description: "Looking for nearby Bluetooth devices...",
+      });
+      window.Android.startScan();
+    } else {
       toast({
         variant: "destructive",
-        title: "Web Bluetooth API not available",
-        description: "Your browser does not support Web Bluetooth. Please use a compatible browser like Chrome.",
+        title: "Not in Android App",
+        description: "This feature is only available in the native Android application.",
       });
-      return;
-    }
-
-    setIsScanning(true);
-    try {
-      // Request a device with a specific service if known, otherwise scan for all.
-      // For a water quality monitor, you'd typically have a specific service UUID.
-      const bleDevice = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        // Optional: Filter for specific services
-        // optionalServices: ['<your-esp32-service-uuid>'],
-      });
-
-      toast({
-        title: "Device found!",
-        description: `Found ${bleDevice.name || `Unnamed Device (${bleDevice.id})`}.`,
-      });
-      
-      setDevices(prevDevices => {
-        // Avoid adding duplicate devices
-        if (prevDevices.some(d => d.id === bleDevice.id)) {
-            return prevDevices;
-        }
-        return [...prevDevices, { name: bleDevice.name ?? 'Unnamed Device', id: bleDevice.id, connected: false, device: bleDevice }];
-      });
-
-    } catch (error: any) {
-      if (error.name === 'NotFoundError') {
-        toast({
-            variant: "default",
-            title: "No device selected",
-            description: "The device scanning process was cancelled.",
-        });
-      } else {
-        toast({
-            variant: "destructive",
-            title: "Bluetooth Error",
-            description: `Could not connect to device: ${error.message}`,
-        });
-      }
-    } finally {
-      setIsScanning(false);
     }
   };
 
@@ -101,11 +93,16 @@ export default function DeviceSettings() {
                     <p>Click "Pair New Device" to get started.</p>
                 </div>
             )}
+             {isScanning && devices.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                    <p>Scanning for devices...</p>
+                </div>
+            )}
             {devices.map(device => (
                 <div key={device.id} className="flex items-center justify-between rounded-lg border p-4">
                     <div className="flex items-center gap-4">
-                        {device.connected ? 
-                            <BluetoothConnected className="h-5 w-5 text-primary" /> : 
+                        {device.connected ?
+                            <BluetoothConnected className="h-5 w-5 text-primary" /> :
                             <Bluetooth className="h-5 w-5 text-muted-foreground" />
                         }
                         <div>
